@@ -1,0 +1,1849 @@
+nohup: ignoring input
+Truncated batch size to number of primaries: 7
+
+Connected as user 'gpadmin' to database 'testdb', port '5432', gpdb version '5.29'
+-------------------------------------------------------------------
+Batch size: 7
+Performing test 'unique_index_violation'
+Total runtime for test 'unique_index_violation': 0:00:00.54
+Performing test 'duplicate'
+Total runtime for test 'duplicate': 0:00:05.00
+Performing test 'missing_extraneous'
+Total runtime for test 'missing_extraneous': 0:00:05.27
+Performing test 'inconsistent'
+Total runtime for test 'inconsistent': 0:00:06.23
+Performing test 'foreign_key'
+Total runtime for test 'foreign_key': 0:00:01.48
+Performing test 'acl'
+Total runtime for test 'acl': 0:00:00.03
+Performing test 'owner'
+Total runtime for test 'owner': 0:00:00.03
+Performing test 'part_integrity'
+Total runtime for test 'part_integrity': 0:00:00.02
+Performing test 'part_constraint'
+Total runtime for test 'part_constraint': 0:00:00.00
+Performing test 'duplicate_persistent'
+Total runtime for test 'duplicate_persistent': 0:00:00.10
+Performing test 'mirroring_matching'
+Total runtime for test 'mirroring_matching': 0:00:00.06
+
+SUMMARY REPORT
+===================================================================
+Completed 11 test(s) on database 'testdb' at 2022-12-09 14:29:42 with elapsed time 0:00:18
+Found a total of 140 issue(s)
+
+----------------------------------------------------
+Relation oid: 24191
+Relation schema: public
+Relation name: test_table11
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24191} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 24191, 'deptype': 'n'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24194
+    Relation schema: pg_toast
+    Relation name: pg_toast_24191
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24194} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24191, 'refclassid': 1259, 'objid': 24194, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24196
+    Relation schema: pg_toast
+    Relation name: pg_toast_24191_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 24196} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 24194, 'refclassid': 1259, 'objid': 24196, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 24194, 'refclassid': 1259, 'objid': 24196, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24192
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24193, 'refclassid': 1247, 'objid': 24192, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24192
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24192} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24193
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24191, 'refclassid': 1259, 'objid': 24193, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24193
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24193} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24195
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24194, 'refclassid': 1259, 'objid': 24195, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24195
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24195} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24197
+Relation schema: public
+Relation name: test_table12
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24197} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 24197, 'deptype': 'n'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24200
+    Relation schema: pg_toast
+    Relation name: pg_toast_24197
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24200} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24197, 'refclassid': 1259, 'objid': 24200, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24202
+    Relation schema: pg_toast
+    Relation name: pg_toast_24197_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 24202} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 24200, 'refclassid': 1259, 'objid': 24202, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 24200, 'refclassid': 1259, 'objid': 24202, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24198
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24199, 'refclassid': 1247, 'objid': 24198, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24198
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24198} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24199
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24197, 'refclassid': 1259, 'objid': 24199, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24199
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24199} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24201
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24200, 'refclassid': 1259, 'objid': 24201, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24201
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24201} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24203
+Relation schema: public
+Relation name: test_table13
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24203} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 24203, 'deptype': 'n'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24206
+    Relation schema: pg_toast
+    Relation name: pg_toast_24203
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24206} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24203, 'refclassid': 1259, 'objid': 24206, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24208
+    Relation schema: pg_toast
+    Relation name: pg_toast_24203_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 24208} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 24206, 'refclassid': 1259, 'objid': 24208, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 24206, 'refclassid': 1259, 'objid': 24208, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24204
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24205, 'refclassid': 1247, 'objid': 24204, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24204
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24204} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24205
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24203, 'refclassid': 1259, 'objid': 24205, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24205
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24205} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24207
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24206, 'refclassid': 1259, 'objid': 24207, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24207
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24207} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24209
+Relation schema: public
+Relation name: test_table14
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24209} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 24209, 'deptype': 'n'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24212
+    Relation schema: pg_toast
+    Relation name: pg_toast_24209
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24212} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24209, 'refclassid': 1259, 'objid': 24212, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24214
+    Relation schema: pg_toast
+    Relation name: pg_toast_24209_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 24214} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 24212, 'refclassid': 1259, 'objid': 24214, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 24212, 'refclassid': 1259, 'objid': 24214, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24210
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24211, 'refclassid': 1247, 'objid': 24210, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24210
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24210} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24211
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24209, 'refclassid': 1259, 'objid': 24211, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24211
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24211} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24213
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24212, 'refclassid': 1259, 'objid': 24213, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24213
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24213} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24215
+Relation schema: public
+Relation name: test_table15
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24215} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 24215, 'deptype': 'n'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24218
+    Relation schema: pg_toast
+    Relation name: pg_toast_24215
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24218} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24215, 'refclassid': 1259, 'objid': 24218, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24220
+    Relation schema: pg_toast
+    Relation name: pg_toast_24215_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 24220} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 24218, 'refclassid': 1259, 'objid': 24220, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 24218, 'refclassid': 1259, 'objid': 24220, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24216
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24217, 'refclassid': 1247, 'objid': 24216, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24216
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24216} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24217
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24215, 'refclassid': 1259, 'objid': 24217, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24217
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24217} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24219
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24218, 'refclassid': 1259, 'objid': 24219, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24219
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24219} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24221
+Relation schema: public
+Relation name: test_table16
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24221} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 24221, 'deptype': 'n'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24224
+    Relation schema: pg_toast
+    Relation name: pg_toast_24221
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24224} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24221, 'refclassid': 1259, 'objid': 24224, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24226
+    Relation schema: pg_toast
+    Relation name: pg_toast_24221_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 24226} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 24224, 'refclassid': 1259, 'objid': 24226, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 24224, 'refclassid': 1259, 'objid': 24226, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24222
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24223, 'refclassid': 1247, 'objid': 24222, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24222
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24222} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24223
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24221, 'refclassid': 1259, 'objid': 24223, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24223
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24223} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24225
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24224, 'refclassid': 1259, 'objid': 24225, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24225
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24225} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24227
+Relation schema: public
+Relation name: test_table17
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24227} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 24227, 'deptype': 'n'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24230
+    Relation schema: pg_toast
+    Relation name: pg_toast_24227
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24230} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24227, 'refclassid': 1259, 'objid': 24230, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24232
+    Relation schema: pg_toast
+    Relation name: pg_toast_24227_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 24232} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 24230, 'refclassid': 1259, 'objid': 24232, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 24230, 'refclassid': 1259, 'objid': 24232, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24228
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24229, 'refclassid': 1247, 'objid': 24228, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24228
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24228} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24229
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24227, 'refclassid': 1259, 'objid': 24229, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24229
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24229} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24231
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24230, 'refclassid': 1259, 'objid': 24231, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24231
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24231} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24233
+Relation schema: public
+Relation name: test_table18
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24233} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 24233, 'deptype': 'n'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24236
+    Relation schema: pg_toast
+    Relation name: pg_toast_24233
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24236} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24233, 'refclassid': 1259, 'objid': 24236, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24238
+    Relation schema: pg_toast
+    Relation name: pg_toast_24233_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 24238} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 24236, 'refclassid': 1259, 'objid': 24238, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 24236, 'refclassid': 1259, 'objid': 24238, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24234
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24235, 'refclassid': 1247, 'objid': 24234, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24234
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24234} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24235
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24233, 'refclassid': 1259, 'objid': 24235, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24235
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24235} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24237
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24236, 'refclassid': 1259, 'objid': 24237, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24237
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24237} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24239
+Relation schema: public
+Relation name: test_table19
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24239} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 24239, 'deptype': 'n'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24242
+    Relation schema: pg_toast
+    Relation name: pg_toast_24239
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24242} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24239, 'refclassid': 1259, 'objid': 24242, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24244
+    Relation schema: pg_toast
+    Relation name: pg_toast_24239_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 24244} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 24242, 'refclassid': 1259, 'objid': 24244, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 24242, 'refclassid': 1259, 'objid': 24244, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24240
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24241, 'refclassid': 1247, 'objid': 24240, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24240
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24240} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24241
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24239, 'refclassid': 1259, 'objid': 24241, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24241
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24241} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24243
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24242, 'refclassid': 1259, 'objid': 24243, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24243
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24243} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24245
+Relation schema: public
+Relation name: test_table20
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24245} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 24245, 'deptype': 'n'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24248
+    Relation schema: pg_toast
+    Relation name: pg_toast_24245
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 24248} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24245, 'refclassid': 1259, 'objid': 24248, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 24250
+    Relation schema: pg_toast
+    Relation name: pg_toast_24245_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 24250} on content -1 (rh7-master:5432) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 24248, 'refclassid': 1259, 'objid': 24250, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 24248, 'refclassid': 1259, 'objid': 24250, 'deptype': 'a'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24246
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24247, 'refclassid': 1247, 'objid': 24246, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24246
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24246} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24247
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24245, 'refclassid': 1259, 'objid': 24247, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24247
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24247} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 24249
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 24248, 'refclassid': 1259, 'objid': 24249, 'deptype': 'i'} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Object oid: 24249
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 24249} on content -1 (rh7-master:5432) 
+
+
+----------------------------------------------------
+Relation oid: 25567
+Relation schema: public
+Relation name: test_table51
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25567} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 25567, 'deptype': 'n'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25570
+    Relation schema: pg_toast
+    Relation name: pg_toast_25567
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25570} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25567, 'refclassid': 1259, 'objid': 25570, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25572
+    Relation schema: pg_toast
+    Relation name: pg_toast_25567_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 25572} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 25570, 'refclassid': 1259, 'objid': 25572, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 25570, 'refclassid': 1259, 'objid': 25572, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25568
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25569, 'refclassid': 1247, 'objid': 25568, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25568
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25568} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25569
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25567, 'refclassid': 1259, 'objid': 25569, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25569
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25569} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25571
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25570, 'refclassid': 1259, 'objid': 25571, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25571
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25571} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25573
+Relation schema: public
+Relation name: test_table52
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25573} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 25573, 'deptype': 'n'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25576
+    Relation schema: pg_toast
+    Relation name: pg_toast_25573
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25576} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25573, 'refclassid': 1259, 'objid': 25576, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25578
+    Relation schema: pg_toast
+    Relation name: pg_toast_25573_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 25578} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 25576, 'refclassid': 1259, 'objid': 25578, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 25576, 'refclassid': 1259, 'objid': 25578, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25574
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25575, 'refclassid': 1247, 'objid': 25574, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25574
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25574} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25575
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25573, 'refclassid': 1259, 'objid': 25575, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25575
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25575} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25577
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25576, 'refclassid': 1259, 'objid': 25577, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25577
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25577} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25579
+Relation schema: public
+Relation name: test_table53
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25579} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 25579, 'deptype': 'n'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25582
+    Relation schema: pg_toast
+    Relation name: pg_toast_25579
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25582} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25579, 'refclassid': 1259, 'objid': 25582, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25584
+    Relation schema: pg_toast
+    Relation name: pg_toast_25579_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 25584} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 25582, 'refclassid': 1259, 'objid': 25584, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 25582, 'refclassid': 1259, 'objid': 25584, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25580
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25581, 'refclassid': 1247, 'objid': 25580, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25580
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25580} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25581
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25579, 'refclassid': 1259, 'objid': 25581, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25581
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25581} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25583
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25582, 'refclassid': 1259, 'objid': 25583, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25583
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25583} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25585
+Relation schema: public
+Relation name: test_table54
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25585} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 25585, 'deptype': 'n'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25588
+    Relation schema: pg_toast
+    Relation name: pg_toast_25585
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25588} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25585, 'refclassid': 1259, 'objid': 25588, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25590
+    Relation schema: pg_toast
+    Relation name: pg_toast_25585_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 25590} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 25588, 'refclassid': 1259, 'objid': 25590, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 25588, 'refclassid': 1259, 'objid': 25590, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25586
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25587, 'refclassid': 1247, 'objid': 25586, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25586
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25586} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25587
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25585, 'refclassid': 1259, 'objid': 25587, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25587
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25587} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25589
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25588, 'refclassid': 1259, 'objid': 25589, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25589
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25589} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25591
+Relation schema: public
+Relation name: test_table55
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25591} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 25591, 'deptype': 'n'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25594
+    Relation schema: pg_toast
+    Relation name: pg_toast_25591
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25594} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25591, 'refclassid': 1259, 'objid': 25594, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25596
+    Relation schema: pg_toast
+    Relation name: pg_toast_25591_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 25596} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 25594, 'refclassid': 1259, 'objid': 25596, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 25594, 'refclassid': 1259, 'objid': 25596, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25592
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25593, 'refclassid': 1247, 'objid': 25592, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25592
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25592} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25593
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25591, 'refclassid': 1259, 'objid': 25593, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25593
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25593} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25595
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25594, 'refclassid': 1259, 'objid': 25595, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25595
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25595} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25597
+Relation schema: public
+Relation name: test_table56
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25597} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 25597, 'deptype': 'n'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25600
+    Relation schema: pg_toast
+    Relation name: pg_toast_25597
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25600} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25597, 'refclassid': 1259, 'objid': 25600, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25602
+    Relation schema: pg_toast
+    Relation name: pg_toast_25597_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 25602} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 25600, 'refclassid': 1259, 'objid': 25602, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 25600, 'refclassid': 1259, 'objid': 25602, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25598
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25599, 'refclassid': 1247, 'objid': 25598, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25598
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25598} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25599
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25597, 'refclassid': 1259, 'objid': 25599, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25599
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25599} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25601
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25600, 'refclassid': 1259, 'objid': 25601, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25601
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25601} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25603
+Relation schema: public
+Relation name: test_table57
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25603} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 25603, 'deptype': 'n'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25606
+    Relation schema: pg_toast
+    Relation name: pg_toast_25603
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25606} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25603, 'refclassid': 1259, 'objid': 25606, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25608
+    Relation schema: pg_toast
+    Relation name: pg_toast_25603_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 25608} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 25606, 'refclassid': 1259, 'objid': 25608, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 25606, 'refclassid': 1259, 'objid': 25608, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25604
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25605, 'refclassid': 1247, 'objid': 25604, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25604
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25604} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25605
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25603, 'refclassid': 1259, 'objid': 25605, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25605
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25605} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25607
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25606, 'refclassid': 1259, 'objid': 25607, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25607
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25607} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25609
+Relation schema: public
+Relation name: test_table58
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25609} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 25609, 'deptype': 'n'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25612
+    Relation schema: pg_toast
+    Relation name: pg_toast_25609
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25612} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25609, 'refclassid': 1259, 'objid': 25612, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25614
+    Relation schema: pg_toast
+    Relation name: pg_toast_25609_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 25614} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 25612, 'refclassid': 1259, 'objid': 25614, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 25612, 'refclassid': 1259, 'objid': 25614, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25610
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25611, 'refclassid': 1247, 'objid': 25610, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25610
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25610} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25611
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25609, 'refclassid': 1259, 'objid': 25611, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25611
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25611} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25613
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25612, 'refclassid': 1259, 'objid': 25613, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25613
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25613} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25615
+Relation schema: public
+Relation name: test_table59
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25615} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 25615, 'deptype': 'n'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25618
+    Relation schema: pg_toast
+    Relation name: pg_toast_25615
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25618} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25615, 'refclassid': 1259, 'objid': 25618, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25620
+    Relation schema: pg_toast
+    Relation name: pg_toast_25615_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 25620} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 25618, 'refclassid': 1259, 'objid': 25620, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 25618, 'refclassid': 1259, 'objid': 25620, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25616
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25617, 'refclassid': 1247, 'objid': 25616, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25616
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25616} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25617
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25615, 'refclassid': 1259, 'objid': 25617, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25617
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25617} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25619
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25618, 'refclassid': 1259, 'objid': 25619, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25619
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25619} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25621
+Relation schema: public
+Relation name: test_table60
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25621} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 2200, 'refclassid': 2615, 'objid': 25621, 'deptype': 'n'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25624
+    Relation schema: pg_toast
+    Relation name: pg_toast_25621
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+        Missing relation metadata for {'oid': 25624} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25621, 'refclassid': 1259, 'objid': 25624, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+    Sub-object: 
+    ----------------------------------------------------
+    Relation oid: 25626
+    Relation schema: pg_toast
+    Relation name: pg_toast_25621_index
+
+    Name of test which found this issue: missing_extraneous_pg_class
+    Name of test which found this issue: missing_extraneous_pg_attribute
+    Name of test which found this issue: missing_extraneous_pg_index
+        Missing relation metadata for {'oid': 25626} on content 4 (rh7-node03:6000) 
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 1, 'objsubid': 0, 'refobjid': 25624, 'refclassid': 1259, 'objid': 25626, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+        Missing depend metadata of {'classid': 1259, 'refobjsubid': 2, 'objsubid': 0, 'refobjid': 25624, 'refclassid': 1259, 'objid': 25626, 'deptype': 'a'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25622
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25623, 'refclassid': 1247, 'objid': 25622, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25622
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25622} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25623
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25621, 'refclassid': 1259, 'objid': 25623, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25623
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25623} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Relation oid: 25625
+Relation schema: N/A
+Relation name: N/A
+
+    Name of test which found this issue: missing_extraneous_pg_depend
+        Missing depend metadata of {'classid': 1247, 'refobjsubid': 0, 'objsubid': 0, 'refobjid': 25624, 'refclassid': 1259, 'objid': 25625, 'deptype': 'i'} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+Object oid: 25625
+Table name: pg_type
+
+    Name of test which found this issue: missing_extraneous_pg_type
+        Missing type metadata of {'oid': 25625} on content 4 (rh7-node03:6000) 
+
+
+----------------------------------------------------
+    Tables with missing issues:
+        Format [database name].[schema name].[table name].[segment id]:
+        Table testdb.pg_toast.pg_toast_25567.4
+        Table testdb.pg_toast.pg_toast_25567_index.4
+        Table testdb.pg_toast.pg_toast_25573.4
+        Table testdb.pg_toast.pg_toast_25573_index.4
+        Table testdb.pg_toast.pg_toast_25579.4
+        Table testdb.pg_toast.pg_toast_25579_index.4
+        Table testdb.pg_toast.pg_toast_25585.4
+        Table testdb.pg_toast.pg_toast_25585_index.4
+        Table testdb.pg_toast.pg_toast_25591.4
+        Table testdb.pg_toast.pg_toast_25591_index.4
+        Table testdb.pg_toast.pg_toast_25597.4
+        Table testdb.pg_toast.pg_toast_25597_index.4
+        Table testdb.pg_toast.pg_toast_25603.4
+        Table testdb.pg_toast.pg_toast_25603_index.4
+        Table testdb.pg_toast.pg_toast_25609.4
+        Table testdb.pg_toast.pg_toast_25609_index.4
+        Table testdb.pg_toast.pg_toast_25615.4
+        Table testdb.pg_toast.pg_toast_25615_index.4
+        Table testdb.pg_toast.pg_toast_25621.4
+        Table testdb.pg_toast.pg_toast_25621_index.4
+        Table testdb.public.test_table51.4
+        Table testdb.public.test_table52.4
+        Table testdb.public.test_table53.4
+        Table testdb.public.test_table54.4
+        Table testdb.public.test_table55.4
+        Table testdb.public.test_table56.4
+        Table testdb.public.test_table57.4
+        Table testdb.public.test_table58.4
+        Table testdb.public.test_table59.4
+        Table testdb.public.test_table60.4
+
+

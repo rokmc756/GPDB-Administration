@@ -1,0 +1,28 @@
+Truncated batch size to number of primaries: 7
+
+Connected as user 'gpadmin' to database 'testdb', port '5432', gpdb version '5.29'
+-------------------------------------------------------------------
+Batch size: 7
+Performing test 'unique_index_violation'
+Total runtime for test 'unique_index_violation': 0:00:00.52
+Performing test 'duplicate'
+Total runtime for test 'duplicate': 0:00:04.89
+Performing test 'missing_extraneous'
+Traceback (most recent call last):
+  File "/usr/local/greenplum-db-5.29.8/bin/lib/gpcheckcat", line 5014, in <module>
+    main()
+  File "/usr/local/greenplum-db-5.29.8/bin/lib/gpcheckcat", line 5002, in main
+    runAllChecks()
+  File "/usr/local/greenplum-db-5.29.8/bin/lib/gpcheckcat", line 3783, in runAllChecks
+    runOneCheck(name)
+  File "/usr/local/greenplum-db-5.29.8/bin/lib/gpcheckcat", line 3766, in runOneCheck
+    all_checks[name]["fn"]()
+  File "/usr/local/greenplum-db-5.29.8/bin/lib/gpcheckcat", line 3600, in <lambda>
+    "fn": lambda: checkMissingEntry(),
+  File "/usr/local/greenplum-db-5.29.8/bin/lib/gpcheckcat", line 2926, in checkMissingEntry
+    catalog_issues = _checkAllTablesForMissingEntries()
+  File "/usr/local/greenplum-db-5.29.8/bin/lib/gpcheckcat", line 2941, in _checkAllTablesForMissingEntries
+    issues = checkTableMissingEntry(catalog_table_obj)
+  File "/usr/local/greenplum-db-5.29.8/bin/lib/gpcheckcat", line 2986, in checkTableMissingEntry
+    curs = db.query(qry)
+KeyboardInterrupt
