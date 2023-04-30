@@ -1,0 +1,11 @@
+# XFS is the preferred data storage file system on Linux platforms.
+# Use the mount command with the following recommended XFS mount options for RHEL 7 and CentOS systems:
+rw,nodev,noatime,nobarrier,inode64
+
+# The nobarrier option is not supported on RHEL 8 or Ubuntu systems. Use only the options:
+rw,nodev,noatime,inode64
+
+# See the mount manual page (man mount opens the man page) for more information about using this command.
+# The XFS options can also be set in the /etc/fstab file. This example entry from an fstab file specifies
+# the XFS options.
+/dev/data /data xfs nodev,noatime,inode64 0 0
