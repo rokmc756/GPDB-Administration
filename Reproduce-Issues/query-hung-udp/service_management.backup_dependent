@@ -1,0 +1,343 @@
+CREATE OR REPLACE FUNCTION service_management.backup_dependent(p_view_schema text, p_view_name text, p_group int8, p_parent_schema text, p_parent_object text, p_is_archive bool, p_drop bool)
+	RETURNS int2
+	LANGUAGE plpgsql
+	SECURITY DEFINER
+	VOLATILE
+AS $$
+	
+
+declare v_orig_view_oid oid; --the oid of the view being examined for child dependencies.
+declare v_list_of_parent_dep character varying(150)[]; --the list of views that make up p_view_schema.p_view_name.
+declare v_group bigint; --the statement_group in service_management.dependent_ddl. The value by which all dependents of the initial base schema and name can be identified.
+declare v_orig_owner character varying(300); --the origional owner for object p_view_schema.p_view_name
+declare v_drop boolean:= false; --determines if a drop should be performed. Default is false so we do not drop the 'top parent'.
+declare v_the_query record; --stores a dependent of p_view_schema.p_view_name
+declare v_dependant character varying(600) []; --an array to store all dependents of p_view_schema.p_view_name
+declare v_i smallint:=0; --the number of children / dependents of p_view_schema.p_view_name located
+declare v_dependent character varying(300); --a dependent of p_view_schema.p_view_name
+declare v_the_dot smallint; --a string value of '.'. Used to split a dependent into its schema (v_dependent_schema) and object (v_dependent_table).
+declare v_dependent_schema character varying(300); --a dependents schema.
+declare v_dependent_table character varying(300); --a dependents table.
+declare v_success smallint; --the result of a recursive call or error logging request.
+declare v_tab_to_be_drop_rec record; --stores all records that will have their owner changed and then be dropped. Identified using v_group.
+declare v_relkind char varying(10); --the relation type of table that it is to be inserted into dependent_ddl.
+
+begin
+
+  RAISE NOTICE 'Starting function call for service_management.backup_dependent(%, %, %, %, %, %, %) (%)', p_view_schema, p_view_name, p_group, p_parent_schema, p_parent_object, p_is_archive, p_drop, clock_timestamp();
+
+  --Get the oid of the view being examined for child dependencies.
+  select pc.oid into v_orig_view_oid
+  from pg_class pc, pg_namespace pn
+  where pc.relnamespace = pn.oid
+  and pc.relname = p_view_name
+  and pn.nspname = p_view_schema;
+
+  RAISE NOTICE 'v_orig_view_oid = % (%)', v_orig_view_oid, clock_timestamp();
+
+  RAISE NOTICE 'Start getting v_list_of_parent_dep (%)', clock_timestamp();
+
+  -- Get v_list_of_parent_dep - the list of views that make up p_view_schema.p_view_name.
+  select array_agg(distinct replace((pg_catalog.textin(pg_catalog.regclassout(pd_dep.refobjid::regclass))), '"', '')) into v_list_of_parent_dep
+  from pg_depend pd, pg_depend pd_dep
+  where pd.classid = 'pg_rewrite'::regclass --
+  and pd.refobjsubid = 0 --object type/number identifier for view columns
+  and
+  (  pg_catalog.textin(pg_catalog.regclassout(pd.refobjid::regclass)) = p_view_schema||'.'||p_view_name
+     or  pg_catalog.textin(pg_catalog.regclassout(pd.refobjid::regclass)) = p_view_schema||'."'||p_view_name||'"'
+  )
+  and pg_catalog.textin(pg_catalog.regclassout( pd_dep.refobjid::regclass)) <> (p_view_schema||'.'||p_view_name)
+  and pg_catalog.textin(pg_catalog.regclassout( pd_dep.refobjid::regclass)) <> (p_view_schema||'."'||p_view_name||'"')
+  and pd_dep.refclassid = 'pg_class'::regclass
+  and pd_dep.classid::regclass = 'pg_rewrite'::regclass
+  and pd.objid = pd_dep.objid;
+
+  RAISE NOTICE 'v_list_of_parent_dep = % (%)', v_list_of_parent_dep, clock_timestamp();
+
+  --check if it is the 1st iteration. Is this a recursive call? Yes? Then execute.
+  if p_group <> 0 THEN --A p_group of 0 means this is the 'top level' of the dependency tree i.e. the first time / item on which the function is called.
+    --it is a sub level
+    v_group := p_group;
+
+    RAISE NOTICE 'Start insert into service_management.dependent_ddl for dependent % of % (%)', p_view_schema||'.'||p_view_name, p_parent_schema||'.'||p_parent_object, clock_timestamp();
+
+    --Get the view definition from pg_catalog.pg_views for p_view_schema.p_view_name and store it in service_management.dependent_ddl
+    insert into service_management.dependent_ddl
+      select nextval('service_management.dependent_ddl_row_wid_seq'),
+      'CREATE OR REPLACE VIEW  ' || schemaname || '."' || viewname || '" as '||  definition || ' comment on view '||  schemaname || '."' || viewname || '" is '''|| coalesce((select pg_catalog.obj_description((schemaname || '."' || viewname ||'"'  )::regclass::oid)),'') || ''';',
+      v_group, p_view_schema, p_view_name, p_parent_schema, p_parent_object, now(), null::timestamp,
+      case when p_is_archive then 'A' else 'y' end,
+      v_list_of_parent_dep, viewowner, 'v'
+      FROM pg_catalog.pg_views
+      where lower(viewname) = lower(p_view_name)
+      and schemaname = p_view_schema
+      union all
+      select nextval('service_management.dependent_ddl_row_wid_seq'),
+      'CREATE MATERIALIZED VIEW  ' || schemaname || '."' || matviewname || '" as '||  definition || ' comment on MATERIALIZED view '||  schemaname || '."' || matviewname || '" is '''|| coalesce((select pg_catalog.obj_description((schemaname || '."' || matviewname ||'"'  )::regclass::oid)),'') || ''';',
+      v_group, p_view_schema, p_view_name, p_parent_schema, p_parent_object, now(), null::timestamp,
+      case when p_is_archive then 'A' else 'y' end,
+      v_list_of_parent_dep, matviewowner, 'm'
+      FROM pg_catalog.pg_matviews
+      where lower(matviewname) = lower(p_view_name)
+      and schemaname = p_view_schema;
+
+    RAISE NOTICE 'End insert into service_management.dependent_ddl for dependent % of % (%)', p_view_schema||'.'||p_view_name, p_parent_schema||'.'||p_parent_object, clock_timestamp();
+
+    RAISE NOTICE 'Start getting the owner of object % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+    --Get the owner
+    select viewowner
+    FROM pg_catalog.pg_views
+    where lower(viewname) = lower(p_view_name)
+    and schemaname = p_view_schema
+    union
+    select matviewowner
+    FROM pg_catalog.pg_matviews
+    where lower(matviewname) = lower(p_view_name)
+    and schemaname = p_view_schema
+    into v_orig_owner;
+
+    RAISE NOTICE 'End getting the owner of object % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+    raise notice 'Start inserting grants % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+    --Find and enter the grants into service_management.dependent_ddl
+    insert into service_management.dependent_ddl
+      select nextval('service_management.dependent_ddl_row_wid_seq'),
+      string_agg('  grant ' || pr.type || ' on ' || p_view_schema || '."' || p_view_name ||  '" to ' || g_grantee.rolname || ';','' ), v_group, p_view_schema,
+      p_view_name, p_parent_schema, p_parent_object, now(), null::timestamp, case when p_is_archive then 'A' else 'y' end, v_list_of_parent_dep, v_orig_owner, null
+      FROM pg_catalog.pg_class c, pg_catalog.pg_roles u_grantor, pg_catalog.pg_roles g_grantee,
+      (SELECT 'SELECT' UNION ALL SELECT 'DELETE' UNION SELECT 'INSERT' UNION SELECT 'UPDATE' UNION SELECT 'REFERENCES' UNION SELECT 'TRIGGER') pr(type)
+      WHERE c.relkind in ('v','m')
+      AND aclcontains(c.relacl, makeaclitem(g_grantee.oid, u_grantor.oid, pr.type, false))
+      and u_grantor.oid = c.relowner
+      and c.oid::regclass = (p_view_schema||'."'||p_view_name||'"')::regclass
+      and u_grantor.rolname <> g_grantee.rolname
+      having count(1) >= 1;
+
+    raise notice 'End inserting grants % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+    raise notice 'Start inserting comments % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+    --Find and enter the comments into service_management.dependent_ddl
+    insert into service_management.dependent_ddl
+      select nextval('service_management.dependent_ddl_row_wid_seq'), string_agg( base_comment.comment,'' ), v_group, p_view_schema, p_view_name,
+      p_parent_schema, p_parent_object, now(), null::timestamp, case when p_is_archive then 'A' else 'y' end, v_list_of_parent_dep, v_orig_owner, null
+      from
+      (  select 'COMMENT ON COLUMN ' ||  table_schema ||'."' || table_name || '".' || column_name || ' is ''' ||  pg_catalog.col_description((table_schema || '."' ||table_name || '"')::regclass::oid,cols.ordinal_position::int) || ''';' as comment
+         from information_schema.columns cols
+         where lower(cols.table_name) = lower(p_view_name)
+         and table_schema = p_view_schema
+      ) base_comment
+      where comment is not null
+      having count(1) >= 1;
+
+    raise notice 'End inserting comments % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+    -- set the flag to drop the view at the end of the iteration
+    v_drop:=true;
+  end if;
+
+  RAISE NOTICE 'Checking % for children (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+  --Add into the v_dependant array any 'children'.
+  --These are views impacted by changes to p_view_schema.p_view_name
+  for v_the_query in
+  (  select distinct dependent_ns.nspname||'.'||dependent_view.relname as dependent
+     FROM pg_depend
+     JOIN pg_rewrite ON pg_depend.objid = pg_rewrite.oid
+     JOIN pg_class as dependent_view ON pg_rewrite.ev_class = dependent_view.oid
+     JOIN pg_class as source_table ON pg_depend.refobjid = source_table.oid
+     JOIN pg_namespace dependent_ns ON dependent_ns.oid = dependent_view.relnamespace
+     JOIN pg_namespace source_ns ON source_ns.oid = source_table.relnamespace
+     WHERE pg_depend.classid = 'pg_rewrite'::regclass
+     and source_ns.nspname = p_view_schema
+     and source_table.relname = p_view_name
+     and (dependent_ns.nspname || '.' || dependent_view.relname) <>  (p_view_schema || '.' || p_view_name)
+     and dependent_view.relkind in ('v','m')
+     ORDER BY 1
+  ) loop
+  -- save the children on an array
+    v_dependant[v_i] := v_the_query.dependent;
+
+    RAISE NOTICE 'Located child #%. % is a child of % (%)', v_i + 1, v_dependant[v_i], p_view_schema||'.'||p_view_name, clock_timestamp();
+
+    v_i := v_i + 1;
+  end loop;
+
+  --If p_group = 0 then this function call is for the initial object p_view_schema.p_view_name
+  --and if this initial object has children then get a new group id to associate dependent items (children) with the 'top parent'.
+  if p_group = 0 then
+    --Get the new group id
+    select nextval('service_management.dependent_ddl_statement_group_seq') into v_group;
+
+    RAISE NOTICE 'Allocating a new group id % (%)', v_group, clock_timestamp();
+
+    --If p_is_archive is true, then record the base table, otherwise do not record the base table and record the dependents
+    if p_is_archive then
+      --add entries to dependent ddl for grants and comments from the parent
+      RAISE NOTICE 'Start getting the owner of object % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+      select pr.rolname, pc.relkind into v_orig_owner, v_relkind
+      from pg_catalog.pg_class pc, pg_catalog.pg_roles pr, pg_catalog.pg_namespace pn
+      where pr.oid = pc.relowner
+      and pn.oid = pc.relnamespace
+      and pn.nspname = p_view_schema
+      and relname = p_view_name;
+
+      --Find and create table
+      insert into service_management.dependent_ddl
+        select nextval('service_management.dependent_ddl_row_wid_seq') as row_wid,
+        'select * from  dba_work.chgview_owner_tosys(''' ||  p_view_schema || ''', ''"' || p_view_name || '"'', ''' || v_orig_owner ||''');' as statement_value,
+        v_group as statement_group, p_view_schema as dependent_schema, p_view_name as dependent_table, p_parent_schema as base_schema, p_parent_object as base_table,
+        now() as extracted_date, null::timestamp as re_processed_date, 'A' as active, null, v_orig_owner as object_owner, v_relkind as relkind;
+
+      RAISE NOTICE 'End getting the owner of object % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+	  RAISE NOTICE 'Start inserting grants % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+      --Find and enter the grants into service_management.dependent_ddl
+      insert into service_management.dependent_ddl
+        select nextval('service_management.dependent_ddl_row_wid_seq'),
+        string_agg('  grant ' || pr.type || ' on ' || p_view_schema || '."' || p_view_name ||  '" to ' || g_grantee.rolname || ';','' ),
+        v_group, p_view_schema, p_view_name, p_parent_schema, p_parent_object, now(), null::timestamp, case when p_is_archive then 'A' else 'y' end, v_list_of_parent_dep,
+        v_orig_owner, null
+        FROM pg_catalog.pg_class c, pg_catalog.pg_roles u_grantor, pg_catalog.pg_roles g_grantee,
+        (SELECT 'SELECT' UNION ALL SELECT 'DELETE' UNION SELECT 'INSERT' UNION SELECT 'UPDATE' UNION SELECT 'REFERENCES' UNION SELECT 'TRIGGER') pr(type)
+        WHERE c.relkind in ('r') --only tables, not views
+        and aclcontains(c.relacl, makeaclitem(g_grantee.oid, u_grantor.oid, pr.type, false))
+        and u_grantor.oid = c.relowner
+        and c.oid::regclass = (p_view_schema||'."'||p_view_name||'"')::regclass
+        and u_grantor.rolname <> g_grantee.rolname
+        having count(1) >= 1;
+
+      raise notice 'End inserting grants % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+      raise notice 'Start inserting comments % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+      --Find and enter the comments into service_management.dependent_ddl
+      insert into service_management.dependent_ddl
+        select nextval('service_management.dependent_ddl_row_wid_seq'), string_agg( base_comment.comment,'' ), v_group, p_view_schema, p_view_name, p_parent_schema,
+        p_parent_object, now(), null::timestamp, case when p_is_archive then 'A' else 'y' end, v_list_of_parent_dep, v_orig_owner, null
+        from
+        (  select 'COMMENT ON COLUMN ' ||  table_schema ||'."' || table_name || '".' || column_name || ' is ''' ||  pg_catalog.col_description((table_schema || '."' ||table_name || '"')::regclass::oid,
+           cols.ordinal_position::int) || ''';' as comment
+           from information_schema.columns cols
+           where lower(cols.table_name) = lower(p_view_name)
+           and table_schema = p_view_schema
+        ) base_comment
+        where comment is not null
+        having count(1) >= 1;
+
+      RAISE NOTICE 'End inserting comments % (%)', p_view_schema||'.'||p_view_name, clock_timestamp();
+
+      --Return v_group if there are no children
+      if v_i = 0 then
+        return v_group;
+      end if;
+    end if;
+  end if;
+
+  --If i (the number of children) > 0 then process the children.
+  if v_i <> 0 then
+    RAISE NOTICE '% children were located and must be processed (%)', v_i, clock_timestamp();
+
+    --loop through the children of p_view_schema.p_view_name
+    for v_i in array_lower(v_dependant, 1) .. array_upper(v_dependant, 1)
+    loop
+      --Get the childs name and schema using '.' as a delimiter
+      v_dependent := v_dependant[v_i];
+      select position('.' in v_dependent) into v_the_dot;
+      v_dependent_schema := substring(v_dependent from 1 for v_the_dot-1);
+      v_dependent_table := trim(both '"' from (substring(v_dependent from v_the_dot +1 for 300)));
+
+      RAISE NOTICE 'Start processing child % of % for parent view % - % (%)', v_i+1, array_upper(v_dependant, 1)+1, p_view_schema||'.'||p_view_name, v_dependent_schema||'.'||v_dependent_table, clock_timestamp();
+
+      -- recursive call
+      v_success= service_management.backup_dependent(v_dependent_schema, v_dependent_table, v_group, p_view_schema, p_view_name, p_is_archive, p_drop);
+
+      RAISE NOTICE 'End processing child % of % for parent view % - % (%)', v_i + 1, array_upper(v_dependant, 1)+1, p_view_schema||'.'||p_view_name, v_dependent_schema||'.'||v_dependent_table, clock_timestamp();
+    end loop;
+
+    RAISE NOTICE '% children were located and have been processed (%)', v_i+1, clock_timestamp();
+  else
+    RAISE NOTICE '% children were located (%)', v_i, clock_timestamp();
+  end if;
+
+  --Generate and store the change ownership function call for the child object
+  if v_drop then
+    RAISE NOTICE 'Start service_management.dependent_ddl dba_work.chgview_owner_tosys function generation for % (%)', p_view_schema||'.'||p_view_schema, clock_timestamp();
+
+    insert into service_management.dependent_ddl
+      select nextval('service_management.dependent_ddl_row_wid_seq') as row_wid,
+      'select * from  dba_work.chgview_owner_tosys(''' ||  p_view_schema || ''', ''"' || p_view_name || '"'', ''' || v_orig_owner ||''');' as statement_value,
+      v_group as statement_group, p_view_schema as dependent_schema, p_view_name as dependent_table, p_parent_schema as base_schema, p_parent_object as base_table, now() as extracted_date,
+      null::timestamp as re_processed_date, case when p_is_archive then 'A' else 'y' end as active, v_list_of_parent_dep, v_orig_owner as object_owner, null as relkind;
+
+    RAISE NOTICE 'End service_management.dependent_ddl dba_work.chgview_owner_tosys function generation for % (%)', p_view_schema||'.'||p_view_schema, clock_timestamp();
+  end if;
+
+  --If theres no children for p_view_schema.p_view_name then finish this functions execution
+  if v_i = 0 then
+    RAISE NOTICE '0 children were located. Ending function call for service_management.backup_dependent(%, %, %, %, %, %, %) (%)', p_view_schema, p_view_name, p_group, p_parent_schema, p_parent_object, p_is_archive, p_drop, clock_timestamp();
+    return 0;
+  else
+    --If this is the 'top level' and one or more children exist then query service_management.dependent_ddl
+    --for all the children (dependents) records related to the statement_group. Then change the owner to sys_object_owner and drop them afterwards.
+    if p_group = 0 then
+      raise notice 'Start querying service_management.dependent_ddl to get list of objects related to statement_group % to drop (%)', v_group, clock_timestamp();
+
+      if p_drop then
+        for v_tab_to_be_drop_rec in
+        (  select sql_drop, chg_owner
+           from
+           (  select 'drop '|| max(case when relkind='m' then 'MATERIALIZED ' else  '' end ) ||'view IF EXISTS ' || dependent_schema || '."' || dependent_table || '";' sql_drop,
+              'select dba_work.chgview_owner_tosys( ''' || dependent_schema ||  ''',''"' || dependent_table || '"'',''sys_object_owner'');' chg_owner, max(row_wid) row_wid
+              from service_management.dependent_ddl
+              where statement_group = v_group
+              and statement_value like 'CREATE %'
+              and active in ('y','A')
+              group by dependent_schema, dependent_table
+           ) the_drops
+           order by row_wid desc
+        ) loop
+
+         --Firstly, change the objects owner to sys_object_owner. .
+         raise notice 'Start change owner before % (%)', v_tab_to_be_drop_rec.sql_drop, clock_timestamp();
+         execute (v_tab_to_be_drop_rec.chg_owner);
+         raise notice 'End change owner before % (%)', v_tab_to_be_drop_rec.sql_drop, clock_timestamp();
+
+         --Then drop the object.
+         raise notice 'Start % (%)', v_tab_to_be_drop_rec.sql_drop, clock_timestamp();
+         execute (v_tab_to_be_drop_rec.sql_drop);
+         raise notice 'End % (%)', v_tab_to_be_drop_rec.sql_drop, clock_timestamp();
+
+         end loop;
+      end if;
+      raise notice 'End querying service_management.dependent_ddl to get list of objects related to statement_group % to drop (%)', v_group, clock_timestamp();
+    end if;
+
+    RAISE NOTICE 'End function call for service_management.backup_dependent(%, %, %, %, %, %, %) (%)', p_view_schema, p_view_name, p_group, p_parent_schema, p_parent_object, p_is_archive, p_drop, clock_timestamp();
+
+    return v_group;
+
+  end if;
+
+  exception when others then v_success=service_management.tab_log_error(sqlstate||' ' ||sqlerrm, 'service_management.backup_dependent'|| p_view_schema || '.' || p_view_name);
+    RAISE NOTICE 'Exception found (%)', clock_timestamp();
+    --return -1;
+
+end;
+
+
+
+$$
+EXECUTE ON ANY;
+
+-- Permissions
+
+ALTER FUNCTION service_management.backup_dependent(text, text, int8, text, text, bool, bool) OWNER TO sys_object_owner;
+GRANT ALL ON FUNCTION service_management.backup_dependent(text, text, int8, text, text, bool, bool) TO public;
+GRANT ALL ON FUNCTION service_management.backup_dependent(text, text, int8, text, text, bool, bool) TO sys_object_owner;
+GRANT ALL ON FUNCTION service_management.backup_dependent(text, text, int8, text, text, bool, bool) TO sys_grp_support2;
+GRANT ALL ON FUNCTION service_management.backup_dependent(text, text, int8, text, text, bool, bool) TO gpadmin;

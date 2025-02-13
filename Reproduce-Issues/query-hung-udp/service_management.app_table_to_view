@@ -1,0 +1,33 @@
+-- service_management.app_table_to_view definition
+
+-- Drop table
+
+-- DROP TABLE service_management.app_table_to_view;
+
+CREATE TABLE service_management.app_table_to_view (
+	row_wid int8 NOT NULL,
+	target_schema varchar(100) NULL,
+	view_name varchar(100) NULL,
+	source_schema varchar(100) NULL,
+	table_name varchar(100) NULL,
+	view_owner varchar(100) NULL,
+	field_selection _varchar NULL,
+	"active" bpchar(1) NULL,
+	view_row_wid int8 NOT NULL,
+	w_created_by name NULL,
+	w_last_updated_by name NULL,
+	w_insert_dt timestamp NULL,
+	w_update_dt timestamp NULL,
+	w_last_refreshed_by name NULL,
+	w_last_refresh_date_dt timestamp NULL
+)
+DISTRIBUTED BY (row_wid);
+
+-- Permissions
+
+ALTER TABLE service_management.app_table_to_view OWNER TO sys_object_owner;
+GRANT SELECT, UPDATE, INSERT, TRIGGER, REFERENCES, DELETE ON TABLE service_management.app_table_to_view TO sys_grp_app_admins;
+GRANT SELECT ON TABLE service_management.app_table_to_view TO sys_grp_readers;
+GRANT SELECT, UPDATE, INSERT ON TABLE service_management.app_table_to_view TO sys_grp_support2;
+GRANT SELECT, UPDATE, INSERT, TRIGGER, REFERENCES, DELETE ON TABLE service_management.app_table_to_view TO sys_grp_writers;
+GRANT ALL ON TABLE service_management.app_table_to_view TO sys_object_owner;

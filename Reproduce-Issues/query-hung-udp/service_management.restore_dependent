@@ -1,0 +1,138 @@
+CREATE OR REPLACE FUNCTION service_management.restore_dependent(p_group int8)
+	RETURNS int8
+	LANGUAGE plpgsql
+	SECURITY DEFINER
+	VOLATILE
+AS $$
+	 
+ 
+declare the_query_rec record; --used to store each record that will have a restoration attempted. 
+declare v_previous_dependent character varying(300):=''; --the previous dependent to have its parental dependancies existences authenticated. 
+declare v_source_no smallint; --the current number of objects existing in the database used to create the child dependent. 
+declare v_total bigint :=0; --the number of statements executed as part of attempting to restore dependents. 
+declare v_success smallint; --the result of invoking the tab_log_error function. 
+ 
+begin 
+ 
+  RAISE NOTICE 'Starting function call for restore_dependent(%) (%)', p_group, clock_timestamp(); 
+
+  RAISE NOTICE 'Start setting any duplicate enteries to ''n'' (%)', clock_timestamp(); 
+
+  --remove any duplicates which are defined as: 
+  update service_management.dependent_ddl curr 
+  set re_processed_date = '1990-01-01'::timestamp, active = 'n' 
+  where active = 'y' 
+  and --anything before the latest create statement for the same statement group and child dependent. 
+  (  row_wid < (  select max(row_wid) 
+                  from service_management.dependent_ddl high 
+                  where statement_value like 'CREATE %'
+                  and statement_group = p_group
+                  and high.active = 'y'
+                  and high.dependent_schema = curr.dependent_schema
+                  and high.dependent_table = curr.dependent_table
+               )
+     or (  exists (  select 1 --same dependents flagged across different statement groups. 
+                     from service_management.dependent_ddl other_in
+                     where other_in.statement_value like 'CREATE %'
+                     and statement_group <> p_group
+                     and other_in.active = 'y'
+                     and other_in.dependent_schema = curr.dependent_schema
+                     and other_in.dependent_table = curr.dependent_table
+                  )
+           and statement_group <> p_group 
+        ) 
+  ); 
+
+  RAISE NOTICE 'End setting any duplicate enteries to ''n'' (%)', clock_timestamp(); 
+
+  RAISE NOTICE 'Start processing statement group % (%)', p_group, clock_timestamp(); 
+
+  --loop through each record in order required for restoration. 
+  for the_query_rec in 
+  (  select statement_value, list_of_parent_dep, dependent_schema, dependent_table, array_upper(list_of_parent_dep, 1) sources, row_wid 
+     from service_management.dependent_ddl 
+     where statement_group = p_group 
+     and active = 'y' 
+     order by row_wid asc
+  ) loop 
+ 
+    RAISE NOTICE 'Start processing loop for row_wid % (%)', the_query_rec.row_wid, clock_timestamp(); 
+
+    --list_of_parent_dep are the objects used to create a child dependent. 
+    --v_source_no is how many of the above objects used to create the child currently exist in the database. 
+    if v_previous_dependent != (the_query_rec.dependent_schema||'.'||the_query_rec.dependent_table) then 
+      RAISE NOTICE 'Start getting the number of parental objects dependencies that currently exist (%)', clock_timestamp(); 
+ 
+      select count(1) into v_source_no 
+      from pg_class pc, 
+      pg_namespace pn 
+      where pc.relnamespace = pn.oid 
+      and nspname||'.'||relname = any(the_query_rec.list_of_parent_dep); 
+ 
+      RAISE NOTICE 'End getting the number of parental objects dependencies that currently exist (%)', clock_timestamp(); 
+    end if; 
+ 
+    --only re-processed views for which we have all the sources 
+    if v_source_no = the_query_rec.sources then 
+      --track the number of statements executed 
+      v_total:= v_total+1; 
+ 
+      begin 
+        --execute the statement value 
+        raise notice 'Start statement to be executed: % (%)', the_query_rec.statement_value, clock_timestamp(); 
+        execute(the_query_rec.statement_value); 
+        raise notice 'End statement executed (%)', clock_timestamp(); 
+ 
+        --set the dependents to be no longer required. 
+        raise notice 'Start update dependent_ddl for row_wid % (%)', the_query_rec.row_wid, clock_timestamp(); 
+ 
+        update service_management.dependent_ddl dd 
+        set active = 'n', re_processed_date = now() 
+        where active = 'y' 
+        and dd.row_wid = the_query_rec.row_wid; 
+ 
+        raise notice 'End update dependent_ddl for row_wid % (%)', the_query_rec.row_wid, clock_timestamp(); 
+ 
+      exception when others then 
+        raise notice 'FAILED statement to be executed: % (%)', the_query_rec.statement_value, clock_timestamp(); 
+ 
+        --set the dependents to show as failed. 
+        raise notice 'Start failure update dependent_ddl for row_wid % (%)', the_query_rec.row_wid, clock_timestamp(); 
+ 
+        update service_management.dependent_ddl DD 
+        set active = 'F' , re_processed_date = now() -- fix to populate re_processed date when active='F'
+        where active = 'y' 
+        and dd.row_wid = the_query_rec.row_wid; 
+ 
+        raise notice 'End failure update dependent_ddl for row_wid % (%)', the_query_rec.row_wid, clock_timestamp(); 
+ 
+      end;  
+    end if; 
+ 
+    --set what will be the previous dependent to have its parental dependancies existences authenticated in the next loop. 
+    v_previous_dependent = the_query_rec.dependent_schema||'.'||the_query_rec.dependent_table; 
+
+    RAISE NOTICE 'End processing loop for row_wid % (%)', the_query_rec.row_wid, clock_timestamp(); 
+ 
+  end loop; 
+ 
+  RAISE NOTICE 'End processing statement group % (%)', p_group, clock_timestamp(); 
+ 
+  RAISE NOTICE 'End function call for restore_dependent(%) (%)', p_group, clock_timestamp(); 
+ 
+  return v_total; 
+ 
+  exception WHEN OTHERS THEN v_success=service_management.tab_log_error(sqlstate||' ' ||sqlerrm, 'service_management.restore_dependent group:'|| p_group); 
+ 
+end; 
+ 
+
+$$
+EXECUTE ON ANY;
+
+-- Permissions
+
+ALTER FUNCTION service_management.restore_dependent(int8) OWNER TO sys_object_owner;
+GRANT ALL ON FUNCTION service_management.restore_dependent(int8) TO sys_object_owner;
+GRANT ALL ON FUNCTION service_management.restore_dependent(int8) TO sys_grp_support2;
+GRANT ALL ON FUNCTION service_management.restore_dependent(int8) TO gpadmin;

@@ -1,0 +1,30 @@
+CREATE OR REPLACE FUNCTION service_management.tab_log_error(p_action varchar, p_table_name varchar)
+	RETURNS int4
+	LANGUAGE plpgsql
+	SECURITY DEFINER
+	VOLATILE
+AS $$
+	
+
+begin
+    insert into service_management.app_error_log_wr
+    select nextval('service_management.app_error_log_seq'::regclass),
+        substr(p_action,1,149),
+        substr(p_table_name,1,299),
+        current_user,
+        timeofday()::timestamp;
+
+RETURN 1;
+end;
+
+
+$$
+EXECUTE ON ANY;
+
+-- Permissions
+
+ALTER FUNCTION service_management.tab_log_error(varchar, varchar) OWNER TO sys_object_owner;
+GRANT ALL ON FUNCTION service_management.tab_log_error(varchar, varchar) TO sys_grp_readers;
+GRANT ALL ON FUNCTION service_management.tab_log_error(varchar, varchar) TO public;
+GRANT ALL ON FUNCTION service_management.tab_log_error(varchar, varchar) TO sys_object_owner;
+GRANT ALL ON FUNCTION service_management.tab_log_error(varchar, varchar) TO sys_service_management_grp_readers;

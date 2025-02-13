@@ -1,0 +1,30 @@
+-- service_management.dependent_ddl definition
+
+-- Drop table
+
+-- DROP TABLE service_management.dependent_ddl;
+
+CREATE TABLE service_management.dependent_ddl (
+	row_wid int8 NULL,
+	statement_value varchar NULL,
+	statement_group int8 NULL,
+	dependent_schema varchar(300) NULL,
+	dependent_table varchar(300) NULL,
+	base_schema varchar(300) NULL,
+	base_table varchar(300) NULL,
+	extracted_date timestamp NULL,
+	re_processed_date timestamp NULL,
+	"active" bpchar(1) NULL,
+	list_of_parent_dep _varchar NULL,
+	object_owner name NULL,
+	relkind varchar(10) NULL
+)
+DISTRIBUTED BY (row_wid);
+
+-- Permissions
+
+ALTER TABLE service_management.dependent_ddl OWNER TO sys_object_owner;
+GRANT ALL ON TABLE service_management.dependent_ddl TO sys_grp_app_admins;
+GRANT SELECT ON TABLE service_management.dependent_ddl TO sys_grp_readers;
+GRANT ALL ON TABLE service_management.dependent_ddl TO sys_grp_support2;
+GRANT ALL ON TABLE service_management.dependent_ddl TO sys_object_owner;

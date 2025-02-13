@@ -1,0 +1,541 @@
+CREATE OR REPLACE FUNCTION service_management.update_view_privacy(p_view_row_wid int8, p_refresh_view bool, p_processed int8)
+	RETURNS int4
+	LANGUAGE plpgsql
+	SECURITY DEFINER
+	VOLATILE
+AS $$
+	
+
+
+/*
+ * This function is used to activate and/or deactivate pii for columns defined by governance/business team in the pii table.
+ * During activation, the columns added to the app_table_to_view_free_format with appropriate sql logic so that only users with pii role can view
+ * the info and during deactivation the columns are removed from app_table_to_view_free_format and added back to field selection column
+ * in app_table_to_view.
+ *
+ * param p_refresh_view - force a refresh or update the metadata but dont force a refresh.
+ * param p_processed - max number of objects to process before exiting.
+ *
+ * return: int - -1 on failure.
+ *              -  number of tables processed on success.
+ */
+
+declare v_substitute_rec record;--to capture records for the loop
+declare v_row_wid bigint:=0;--to capture row id of attv
+declare v_orig_view_row_wid	bigint:=0;
+declare v_field_selection character varying[];--to capture field_selection columns for pii activation
+declare v_orig_field_selection character varying[]:='{}';
+declare v_orig_free_format_row_wid bigint:=0;--to capture the current free format row_wid we are processing
+declare v_field_selection_data_type text[];--to capture field_selection datatype for pii activation
+declare v_success bigint;--to capture return code on success
+declare v_col_data_type text;--to capture column data type
+declare v_object_processed smallint:=0;--to capture the table processed
+declare v_current_schema text:='first';--initialize with junk, capture current schema to process
+declare v_free_format_string text:='first';--initialize with junk,capture free format
+declare v_current_table text:='first';--initialize with junk,capture current table to process
+declare v_current_attv_row_wid bigint:=0;--to capture the app_table_to_view free format row_wid we are processing
+declare v_col_type_force_to_null boolean;--to capture pii masking type, null or sha256 when not null
+declare v_levels_set text[] := array['Identify pii add/remove', '1-new attv', '2-new view',
+'3-new base table', '4-set variable for current round', '5-Calc values for current rec', '6-Apply commit'];
+declare v_level character varying;--to capture executing block
+begin
+
+raise notice  'processing view_row_wid %', coalesce(p_view_row_wid::text, 'all');
+
+--Check if temp table to capture actions already exists
+if (select exists (
+   select 1
+   from information_schema.tables
+   where table_name='pii_implementation_action'
+	)
+	)
+then
+	--Exit if exists to continue processing, generally called from service_management.tab_view_to_target function
+	raise notice  'Temp table exists, continue with processing or exit';
+	return 1;
+else
+	raise notice  'Creating temp table to capture actions';
+	--Create temp table to capture actions
+	create temp table pii_implementation_action (
+		task text NULL,
+		row_wid int8 NULL,
+		view_row_wid int8 NULL,
+		field_selection _varchar NULL,
+		source_schema varchar(100) NULL,
+		table_name varchar(100) NULL,
+		column_name varchar NULL,
+		masking_tag varchar(100) NULL,
+		attvff_row_wid int8 NULL,
+		free_format text NULL
+	)
+	distributed by (source_schema,table_name,column_name) ;
+end if;
+
+--Insert PII add actions
+insert into pii_implementation_action
+select 'add' task, attv.row_wid,
+					attv.view_row_wid,
+					attv.field_selection,
+					attv.source_schema,
+					attv.table_name,
+					pmcwh.attr_nm ::character varying column_name,
+					sms.config_item  masking_tag,
+					attvff.row_wid attvff_row_wid,
+			     	attvff.free_format
+			from (select pmcwh.scrty_tag, pmcwh.schema_nm, pmcwh.obj_nm, pmcwh.attr_nm
+				 from service_management.pii_metadata_consolidated_with_history pmcwh,
+				      pg_namespace pn,
+				      pg_class pc,
+				      pg_attribute pa
+				 where pn.oid=pc.relnamespace
+				 and pc.oid=pa.attrelid
+				 and pmcwh.attr_nm=attname
+				 and pmcwh.obj_nm=relname
+				 and pmcwh.schema_nm=nspname
+				 and  pmcwh.active_flg
+				 and not pa.attisdropped) pmcwh,
+				service_management.service_management_config sms,
+				service_management.service_management_config smst,
+				service_management.app_table_to_view attv
+				left outer join service_management.app_table_to_view_free_format attvff
+					on attvff.active ='y'
+					and  attv.view_row_wid=attvff.view_row_wid
+			where sms.config_item in ('mkt_hash','mkt_hide')
+			and smst.config_item='PII_target_workscape'
+			and (attv.target_schema = smst.config_value
+			or smst.config_value = 'all')
+			and sms.config_value = pmcwh.scrty_tag
+			and attv.view_row_wid = coalesce(p_view_row_wid, attv.view_row_wid) --coalesce(null, attv.view_row_wid)
+			and attv.active ='y'
+			and attv.source_schema= pmcwh.schema_nm
+			and attv.table_name= pmcwh.obj_nm
+			and (pmcwh.attr_nm =any(attv.field_selection)
+			or attv.field_selection ='{*}')
+			order by source_schema, table_name, view_row_wid, row_wid, task desc;
+
+raise notice 'Inserted records - add pii';
+
+--Insert PII remove actions
+insert into pii_implementation_action
+select list_of_col.*
+      from
+      (
+      -- current PII applied to selection (p_view_row_wid)
+         select 'remove' task ,
+         		attv.row_wid,
+         		attv.view_row_wid,
+				attv.field_selection,
+				attv.source_schema,
+				attv.table_name,
+	            split_part(unnest(string_to_array(free_format,'case when  pg_has_role(user, ''sys_grp_mkt_pii_readers'', ''MEMBER'' ) then ', ' ,')), '"', 2) :: character varying get_col,
+	            null masking_tag,
+	            attvff.row_wid attvff_row_wid,
+		     	attvff.free_format
+	     from 	service_management.app_table_to_view_free_format attvff,
+	     		service_management.app_table_to_view attv
+         where attvff.free_format like '%case when  pg_has_role(user, ''sys_grp_mkt_pii_readers'', ''MEMBER'' ) then %'  -- FT we have a PII masking
+         and attvff.active ='y'
+         and attv.active ='y'
+         and attvff.stage ='pre_from'
+ 		 and attv.view_row_wid = coalesce(p_view_row_wid, attv.view_row_wid) --coalesce(attv.view_row_wid, attv.view_row_wid)
+ 		 and attv.view_row_wid=attvff.view_row_wid
+      ) list_of_col
+      left join service_management.pii_metadata_consolidated_with_history pmcwh
+	      on pmcwh.attr_nm=get_col
+	      and pmcwh.schema_nm=source_schema
+	      and pmcwh.obj_nm=table_name
+	      and pmcwh.active_flg
+	  where coalesce(get_col,'') <> ''
+      and pmcwh.attr_nm is null --FT this is the condition that validate the PII is not active anymore
+ 	  order by source_schema, table_name, view_row_wid, row_wid, task desc;
+
+raise notice 'Inserted records - remove pii';
+
+--Insert PII add actions if new tags identified and remove for the exisiting one
+insert into pii_implementation_action
+	select task,
+	    row_wid,
+	    view_row_wid,
+	    field_selection,
+	    source_schema,
+	    table_name,
+	    attr_nm,
+	    masking_tag,
+	    attvff_row_wid,
+	    free_format
+	--Following checks for changed security tags for same column
+	from (select
+	    actions.task,
+	    attv.row_wid,
+	    attv.view_row_wid,
+	    attv.field_selection,
+	    attv.source_schema,
+	    attv.table_name,
+	    pmcwh_active.attr_nm,
+	    sms.config_item  masking_tag,
+	    attvff.row_wid attvff_row_wid,
+	    attvff.free_format
+	    ,split_part(unnest(string_to_array(free_format,'case when  pg_has_role(user, ''sys_grp_mkt_pii_readers'', ''MEMBER'' ) then ', ' ,')), '"', 2) :: character varying get_col
+	    from
+	    service_management.pii_metadata_consolidated_with_history pmcwh_active,
+	    service_management.pii_metadata_consolidated_with_history pmcwh_de_ac,
+	    service_management.app_table_to_view attv,
+	    service_management.app_table_to_view_free_format attvff,
+	    service_management.service_management_config sms,
+	    ( select max(last_updated_date) max_last_upd from
+	    service_management.pii_metadata_consolidated_with_history pmcwh_active) max_upd,
+	    (select 'add' task
+	    union all
+	    select 'remove' ) actions
+	    where pmcwh_active.active_flg
+	    and not pmcwh_de_ac.active_flg
+	    and pmcwh_de_ac.last_updated_date=max_upd.max_last_upd
+	    and pmcwh_active.last_updated_date = max_upd.max_last_upd
+	    and pmcwh_active.schema_nm=pmcwh_de_ac.schema_nm
+	    and pmcwh_active.obj_nm =pmcwh_de_ac.obj_nm
+	    and pmcwh_active.attr_nm =pmcwh_de_ac.attr_nm
+	    and pmcwh_active.scrty_tag <> pmcwh_de_ac.scrty_tag
+	    and attv.source_schema = pmcwh_active.schema_nm
+	    and attv.table_name =pmcwh_active.obj_nm
+	    and attv.view_row_wid =attvff.view_row_wid
+	    and attv.active ='y'
+	    and attvff.active ='y'
+	    and sms.config_item in ('mkt_hash','mkt_hide')
+	    and sms.config_value = pmcwh_active.scrty_tag) modified_pii_tags_and_tables -- and all free format columns applied
+	    where modified_pii_tags_and_tables.get_col = modified_pii_tags_and_tables.attr_nm
+	 order by source_schema, table_name, view_row_wid, row_wid, task desc;
+
+raise notice 'Inserted records - security tag changes';
+
+	-- scan all views and tables where we have amendment to apply
+	-- only if field selectionb is * or for field selection includes the sensitive data
+v_level := 'Identify pii add/remove';
+	for v_substitute_rec in
+(SELECT task, row_wid, view_row_wid, field_selection, source_schema, table_name, column_name, masking_tag, attvff_row_wid, free_format
+FROM pii_implementation_action
+order by source_schema, table_name, view_row_wid, row_wid, task desc
+)
+loop
+
+	 raise notice 'starting on view_row_wid : %, column name: %, task: %', v_substitute_rec.view_row_wid , v_substitute_rec.column_name, v_substitute_rec.task;
+--if we have any entry active or inactive in the pii type 2, with null attribute
+
+	 --==1 commit the change working on previous attv record
+	 --==2 commit the change working on previous view
+	 --==3 apply for any new table done processing
+	 --==4 set vriable for current round
+	 --==5 calculate values for current record
+
+	 --==6 on exit check if there is anything to commit
+
+	 	-- 1 if we are processing a new attv row_wid update the previous one
+
+		v_level := '1-new attv';
+	 	raise notice  '--==1 new attv';
+	 	if v_current_attv_row_wid <> 0 and v_current_attv_row_wid <> v_substitute_rec.row_wid then
+	 				raise notice  'updated field selection  % for OID:%', array_to_string(v_field_selection, '-'), v_current_attv_row_wid;
+
+					select service_management.update_app_table_to_view('F',
+						v_current_attv_row_wid,null,null,
+						v_field_selection,'y',user) into v_success;
+
+		raise notice  'updated field_selection for entry row_wid % to %', v_current_attv_row_wid,v_field_selection;
+
+	 	end if;
+
+
+	 	raise notice  '--==2 new view';
+	 	v_level := '2-new view';
+		-- 2 if we are processing a new view_row_wid update the previous free format
+	 	if v_orig_view_row_wid <> 0 and v_orig_view_row_wid <>  v_substitute_rec.view_row_wid then
+	 		raise notice  'free format -%- for view: %',v_free_format_string, v_orig_view_row_wid;
+
+			if  v_orig_free_format_row_wid is null and trim(v_free_format_string) <> '' then
+				raise notice  'free format record does not exists it is an insert';
+
+				select  service_management.insert_app_table_to_view_free_format(
+				    'F',
+				    v_orig_view_row_wid,
+				    'pre_from',
+				    v_free_format_string,
+				    user) into v_orig_free_format_row_wid; -- set the variable in case of further updates
+
+			   raise notice  'new free format row_wid is %',v_orig_free_format_row_wid;
+
+				raise notice  'free format record inserted';
+
+			elsif  v_orig_free_format_row_wid is not null and trim(v_free_format_string) <> '' then  -- if we have a record it is an update for free format
+					raise notice  'free format record exists it is an update';
+
+					select service_management.update_app_table_to_view_free_format(
+					    'F',
+					    v_orig_free_format_row_wid,
+					    v_free_format_string,
+					     null,
+					    user) into v_success;
+
+					   ---FT Add de-activate when no more free format
+
+					raise notice  'free format record updated for row_wid %', v_orig_free_format_row_wid;
+			elsif v_orig_free_format_row_wid is not null and trim(v_free_format_string) = '' then  -- if we have a record it is an update for free format to nothing, w just de-activate the free format record
+					raise notice  'free format record exists and is now empty';
+
+					select service_management.update_app_table_to_view_free_format(
+						    'F',
+						    v_orig_free_format_row_wid,
+						    v_free_format_string,
+						     'n',
+						    user) into v_success;
+			end if;
+
+			raise notice  'commit changes for %',v_orig_view_row_wid;
+
+			select service_management.unlock_view_row_wid_commit(v_orig_view_row_wid) into v_success;
+	end if;
+
+
+
+	 	v_level := '3-new base table';
+	 	raise notice  '--==3 new base table';
+	 	 		raise notice  'v_current_table: %, next_table: %', v_current_schema || '.' || v_current_table , v_substitute_rec.source_schema || '.' ||  v_substitute_rec.table_name ;
+
+	 	-- 3 we are processing a new base table
+	 	-- 3 we are processing a new base table
+	 	 if (v_current_schema || '.' || v_current_table) <> (v_substitute_rec.source_schema || '.' ||  v_substitute_rec.table_name) then
+
+				--refresh the view and its dependences
+				if p_refresh_view then
+					raise notice  're_institute for %',v_current_schema || '.' || v_current_table;
+
+					 select service_management.re_institute_managed_views(v_current_schema::text,v_current_table::text, user) into v_success;
+					 v_object_processed:=v_object_processed+1;
+				end if;
+
+				if v_object_processed>=p_processed then
+						raise notice  'we processed %: exit loop',v_object_processed;
+						exit;
+				end if;
+			end if;
+
+			v_level := '4-set variable for current round';
+			------ one base table was just processed we are now resetting the variables.
+			--------==4 set variable for current round
+	 		raise notice  'Gathering current table data types: %',v_substitute_rec.source_schema || '.' || v_substitute_rec.column_name;
+
+	 		-- get the data types
+	    	select pg_catalog.format_type(pa.atttypid, pa.atttypmod) data_type, case when sms.config_value is null then true else false end
+	    		into v_col_data_type, v_col_type_force_to_null
+			from pg_attribute pa,
+				pg_class pc,
+				pg_namespace pn,
+					pg_type pt
+			left outer join service_management.service_management_config sms
+					on sms.config_item in ('PII_mask_allowed_data_types')
+					and pt.typname=any(string_to_array(sms.config_value,','))
+			where pn.nspname =v_substitute_rec.source_schema
+			and pc.relname =v_substitute_rec.table_name
+			and pa.attname = v_substitute_rec.column_name
+			and pc.relnamespace =pn.oid
+			and pa.attrelid=pc.oid
+			and not pa.attisdropped
+			and pt.oid = pa.atttypid
+			and attnum >=1;
+
+			raise notice  'processing table: % ', v_substitute_rec.source_schema|| '.' || v_substitute_rec.table_name;
+
+
+			raise notice  'data type of sensitive column  % is  %', v_substitute_rec.column_name, v_col_data_type;
+
+
+			-- set the variable
+	    	v_current_schema:=v_substitute_rec.source_schema;
+			v_current_table:= v_substitute_rec.table_name;
+
+
+
+
+	 	-- we are processing a new attv record update the var
+		if v_current_attv_row_wid <> v_substitute_rec.row_wid  then
+
+			-- current attv row_wid
+			raise notice  'processing attv row wid: % ', v_substitute_rec.row_wid;
+			v_current_attv_row_wid:=v_substitute_rec.row_wid;
+
+
+
+	 		raise notice  'Gathering field selection for: %',v_substitute_rec.source_schema || '.' || v_substitute_rec.column_name;
+			--	set field selection
+		 	if v_substitute_rec.field_selection ='{*}' then
+				select array_agg(attname),
+					array_agg(data_type)
+				into v_field_selection, v_field_selection_data_type
+				from (select attname, pg_catalog.format_type(pa.atttypid, pa.atttypmod) data_type from pg_attribute pa,
+					pg_class pc,
+					pg_namespace pn
+				where nspname =v_substitute_rec.source_schema
+				and relname =v_substitute_rec.table_name
+				and relnamespace =pn.oid
+				and pa.attrelid=pc.oid
+				and not attisdropped
+				and attnum >=1
+				order by attnum) column_with_types;
+
+				raise notice  'calculated field selection from ''*'' to %', array_to_string(v_field_selection,',');
+
+				else v_field_selection:=v_substitute_rec.field_selection;
+					raise notice  'base field selection metadata %', array_to_string(v_field_selection,',');
+				end if ;
+	 	end if;
+
+
+	 	-- we are processing a new view
+		if v_orig_view_row_wid <>  v_substitute_rec.view_row_wid then
+			raise notice  'processing view_row_wid %, free format row_wid: %', v_substitute_rec.view_row_wid, v_substitute_rec.attvff_row_wid;
+			-- set variables
+		 	v_orig_free_format_row_wid:=v_substitute_rec.attvff_row_wid;
+		 	v_orig_view_row_wid:=v_substitute_rec.view_row_wid ;
+		 	v_free_format_string:=v_substitute_rec.free_format ;
+		 	raise notice 'free format is : %',v_free_format_string;
+
+		 end if;
+
+
+		v_level := '5-Calc values for current rec';
+		--==5 calculate values for current record
+		-- get the data type of sensitive column -- needed for casting
+		raise notice  '5-calculate values for current record';
+		if v_substitute_rec.task='add' then
+		-- add the col into free format if it is not there yet
+			if (coalesce(v_free_format_string,'') not like '%,case when  pg_has_role(user, ''sys_grp_mkt_pii_readers'', ''MEMBER'' ) then '
+															|| v_substitute_rec.table_name || '_' || v_substitute_rec.row_wid  || '.' || v_substitute_rec.column_name || ' else %')
+			then
+				raise notice 'Masking tag : % , v_col_type_force_to_null : %', v_substitute_rec.masking_tag, v_col_type_force_to_null;
+				raise notice 'Free format before update : %', v_free_format_string;
+
+				v_free_format_string:=coalesce(v_free_format_string,'') || ' ,case when  pg_has_role(user, ''sys_grp_mkt_pii_readers'', ''MEMBER'' ) then ' || v_substitute_rec.table_name || '_' || v_substitute_rec.row_wid  || '.'
+						|| v_substitute_rec.column_name || ' else ' ||
+							case when (v_substitute_rec.masking_tag='mkt_hash' and not v_col_type_force_to_null) then
+								' encode(pgcrypto.digest( ' || v_substitute_rec.table_name || '_' || v_substitute_rec.row_wid  || '.'
+									|| v_substitute_rec.column_name || ', ''sha256''), ''hex'')::'
+								else 	' null::'
+								end  ||
+						v_col_data_type
+						|| ' end "' || v_substitute_rec.column_name || '" ';
+					raise notice 'Free format after update : %', v_free_format_string;
+			end if;
+
+raise notice 'field selection before update : %', v_field_selection;
+			-- remove the column from the field selectin
+ 		 	select array_agg(val) from (select unnest(v_field_selection) val) extended
+			where val <> v_substitute_rec.column_name
+			into v_field_selection;
+
+raise notice 'field selection after update : %', v_field_selection;
+		else -- removal
+	         --Update the free format (remove the column logic)
+
+
+	 		raise notice  'free format before removal : %',v_free_format_string;
+
+
+	         v_free_format_string:= replace(REGEXP_REPLACE(v_free_format_string, ' ,case when  pg_has_role\(user, ''sys_grp_mkt_pii_readers'', ''MEMBER'' \) then ' ||
+			                         v_substitute_rec.table_name || '_' ||  v_substitute_rec.row_wid || '.' ||  v_substitute_rec.column_name || ' else ' || '(.*?)(' ||
+			                         v_substitute_rec.column_name || '")[^,]*', ' '), '  ,', ' ,');
+
+
+	 		raise notice  'free format after removal : %',v_free_format_string;
+
+	 		raise notice  'Gathering field selection for: %',v_substitute_rec.source_schema || '.' || v_substitute_rec.column_name;
+			 --Add it back into the field selection
+			 if not(v_substitute_rec.column_name=any(v_field_selection)) then
+		         v_field_selection:=array_append(v_field_selection,v_substitute_rec.column_name:: character varying);
+		     end if;
+
+		end if;
+
+	end loop;
+	v_level := '6-Apply commit';
+	raise notice  '6-Apply commit';
+	--==6 on exit check if there is anything to commit
+	-- if we exited the loop because we processed all the records returned by the query,
+	-- then we need to apply the changes not commited yet
+	if v_orig_view_row_wid <> 0 and not (v_object_processed>=p_processed) then
+
+		-- update free field selection
+		select service_management.update_app_table_to_view('F',
+			v_current_attv_row_wid,null,null,
+			v_field_selection,'y',user) into v_success;
+
+
+		if  v_orig_free_format_row_wid is null and trim(v_free_format_string) <> '' then
+			raise notice  'free format record does not exists it is an insert';
+
+			select  service_management.insert_app_table_to_view_free_format(
+			    'F',
+			    v_substitute_rec.view_row_wid,
+			    'pre_from',
+			    v_free_format_string,
+			    user) into v_success;
+
+			raise notice  'free format record inserted';
+
+		elsif  v_orig_free_format_row_wid is not null and trim(v_free_format_string) <> '' then -- if we have a record it is an update for free format
+			raise notice  'free format record exists it is an update to -%-',trim(v_free_format_string) ;
+
+			select service_management.update_app_table_to_view_free_format(
+			    'F',
+			    v_orig_free_format_row_wid,
+			    v_free_format_string,
+			     null,
+			    user) into v_success;
+
+			raise notice  'free format record updated';
+		elsif v_orig_free_format_row_wid is not null and trim(v_free_format_string) = ''  then-- if we have a record it is an update for free format
+		raise notice  'we have a record - it is an update for free format';
+			select service_management.update_app_table_to_view_free_format(
+			    'F',
+			    v_orig_free_format_row_wid,
+			    v_free_format_string,
+			     'n',
+			    user) into v_success;
+
+		end if;
+raise notice 'commiting : %', v_orig_view_row_wid;
+
+		select service_management.unlock_view_row_wid_commit(v_orig_view_row_wid) into v_success;
+
+		if p_refresh_view then
+		raise notice  'Refreshing views';
+			 select service_management.re_institute_managed_views(v_current_schema::text,v_current_table::text, user) into v_success;
+			 v_object_processed:=v_object_processed+1;
+		end if;
+	end if;
+
+	-- ok it was a mass update log a message
+	if p_view_row_wid is null then
+		v_success= service_management.log_message(
+			(select session_number from service_management.gp_etl_control_static_d
+			where target_schema= 'ig_lz'
+			and target_table_name = 'gpc_mkt_core_pii_extrct_dtl' limit 1),
+			'MKT PII update'::text,
+			'MKT PII update'::text,
+			'Number of updated base table'::text,
+			now()::timestamp without time zone,
+			v_object_processed::integer);
+	end if;
+
+return v_object_processed;
+
+--Exception handling
+exception when OTHERS then
+         if(v_level = any(v_levels_set))
+         	then v_success = service_management.tab_log_error(sqlstate||' '||sqlerrm, 'service_management.update_view_privacy('''||p_view_row_wid||''', '''||p_refresh_view||''','''||p_processed||''') - '||v_level);
+       	else
+         	v_success=service_management.tab_log_error(sqlstate||' ' ||sqlerrm, 'service_management.update_view_privacy');
+        end if;
+return -1;
+end;
+
+
+$$
+EXECUTE ON ANY;

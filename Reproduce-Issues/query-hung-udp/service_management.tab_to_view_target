@@ -1,0 +1,551 @@
+CREATE OR REPLACE FUNCTION service_management.tab_to_view_target(p_view_row_wid int4, p_audit_user name)
+	RETURNS int4
+	LANGUAGE plpgsql
+	SECURITY DEFINER
+	VOLATILE
+AS $$
+	
+
+declare view_grant RECORD;
+declare comment_creation  RECORD;
+declare check_dependant  RECORD;
+declare comment_full_table  RECORD;
+declare v_success integer;
+declare v_target_schema character varying;
+declare v_view_name character varying;
+declare v_object_owner character varying;
+declare v_level character varying;
+declare v_user_id character varying;
+declare v_field_selection character varying;
+declare v_source_tables character varying;
+declare v_where_clause character varying;
+declare v_outer_joins  character varying;
+declare v_outer_joins_temp  character varying;
+declare v_inner_joins  character varying;
+declare v_inner_joins_temp  character varying;
+declare v_comment  character varying;
+declare v_field_id  character varying;
+declare v_view_found bigint;
+declare v_pre_sql character varying;
+declare v_post_select character varying;
+declare v_pre_from character varying;
+declare v_pre_where character varying;
+declare v_post_sql character varying;
+declare v_table_level_array bigint[];
+declare v_table_level_array_temp character varying[];
+declare v_source_tables_level_array bigint[];
+declare v_dependent smallint;
+
+begin
+    v_level := 'View creation';
+
+
+raise NOTICE 'Start of  tab_to_view_target';
+
+
+select max(target_schema), max( view_name), max(view_owner)
+       FRom service_management.app_table_to_view
+                               where view_row_wid = p_view_row_wid
+                           and active ='y'
+       into  v_target_schema , v_view_name, v_object_owner;
+
+       v_dependent:=0;
+
+
+
+raise NOTICE 'check_dependant';
+
+   <<LOOPD>>
+    for check_dependant in (select distinct attv.source_schema || '.' || attv.table_name source_table,
+t.schemaname || '.' || t.viewname target_view
+ from pg_views t,
+service_management.app_table_to_view attv
+    where attv.view_row_wid = p_view_row_wid
+    and attv.active ='y'
+    and t.schemaname=attv.target_schema
+    and t.viewname =attv.view_name
+    and attv.active='y') loop
+
+
+-- check objects dependencies
+select  count(1) into v_dependent
+from pg_depend b,
+ pg_depend a
+    where b.classid = 'pg_rewrite'::regclass
+    and b.objid=a.objid
+    and a.refclassid = 'pg_class'::regclass
+    and a.refobjid =(check_dependant.target_view)::regclass
+    and a.classid::regclass='pg_rewrite'::regclass
+    and pg_catalog.textin(pg_catalog.regclassout(b.refobjid::regclass)) <> (check_dependant.source_table)
+    and pg_catalog.textin(pg_catalog.regclassout(b.refobjid::regclass)) <> (check_dependant.target_view)
+    and pg_catalog.textin(pg_catalog.regprocout(b.refobjid::regproc)) <> 'pgcrypto.digest'
+    and b.refobjsubid=0;
+
+if v_dependent>0 then
+-- we have dependencies we can exit
+exit LOOPD;
+end if;
+-- check data types dependencies
+select count(1) into v_dependent --  pg_catalog.textin(pg_catalog.regtypeout(a.refobjid::regtype))
+ --, pg_catalog.textin(pg_catalog.regclassout(a.objid::regclass))
+ from pg_depend a
+ where a.refclassid = 'pg_type'::regclass
+and pg_catalog.textin(pg_catalog.regtypeout(a.refobjid::regtype))=check_dependant.target_view
+and deptype <> 'i';
+
+
+
+if v_dependent>0 then
+-- we have dependencies we can exit
+exit LOOPD;
+end if;
+
+    end loop;
+
+
+
+ -- no dependencies process the view
+if ( v_dependent=0) then
+
+    raise NOTICE 'No dependant';
+
+
+    -- apply PII hiding
+	select service_management.update_view_privacy(p_view_row_wid, 'false', 1) into v_success;
+   --select service_management.update_mkt_view_privacy(p_view_row_wid, false) into v_success;
+
+    -- gather the field list
+    select array_to_string(ARRAY(
+    SELECT table_name  || '_' || row_wid || '.' || unnest(field_selection)   field_formated
+    from service_management.app_table_to_view
+    where view_row_wid = p_view_row_wid
+and active='y' order by row_wid asc) ,',')
+    into v_field_selection;
+
+    raise NOTICE 'field list';
+
+-- get the driving table in an array and formated
+select string_agg(table_formated,','), array_agg (row_wid) from
+(select   distinct  attv.source_schema || '.' ||   attv.table_name  || ' ' || attv.table_name || '_' || attv.row_wid table_formated,
+      attv.row_wid
+from service_management.app_table_to_view attv
+left outer join service_management.app_table_to_view_condition attvct
+  on upper(attvct.active)='Y'
+  and attvct.master_table_row_wid =attv.row_wid
+left outer join service_management.app_table_to_view_condition attvct_child
+  on upper(attvct_child.active)='Y'
+  and  attvct_child.slave_table_row_wid = attv.row_wid
+where upper(attv.active)='Y'
+and attv.view_row_wid = p_view_row_wid
+and attvct_child.master_table_row_wid is null) driving_table_list
+ into v_source_tables, v_source_tables_level_array;
+
+
+    raise NOTICE 'driving table';
+       <<LOOP1>>
+
+        --format the inner joins max 10 table
+for i in 1..10 loop
+
+raise NOTICE 'inner loop iteration: %',i;
+select  array_to_string(ARRAY(
+select   array_to_string(array_agg(from_side || array_to_string(condition_side ,' and ')), ' ') the_outer_join
+from  (
+select max(attv_master.source_schema || '.' ||   attv_master.table_name  || ' ' || attv_master.table_name || '_' || attv_master.row_wid ) master_table,
+       max(' inner join ' || attv_slave.source_schema || '.' ||   attv_slave.table_name  || ' ' || attv_slave.table_name || '_' || attv_slave.row_wid ||
+       ' on ') from_side ,
+       array_agg(replace(replace(array_to_string(attvc.condition ,' and '),'master',attv_master.table_name || '_' || attv_master.row_wid),'slave', attv_slave.table_name || '_' || attv_slave.row_wid) ) condition_side -- ,)
+from service_management.app_table_to_view attv_master,
+ service_management.app_table_to_view attv_slave,
+ service_management.app_table_to_view_condition attvc
+where  attvc.master_table_row_wid=attv_master.row_wid
+and   attvc.slave_table_row_wid=attv_slave.row_wid
+and   attv_master.view_row_wid = p_view_row_wid
+and   attv_slave.view_row_wid = p_view_row_wid
+and attvc.master_table_row_wid=any(v_source_tables_level_array)
+and attvc.join_type<> 'outer'
+and  upper(attv_master.active)='Y'
+and upper(attv_slave.active)='Y'
+and upper(attvc.active)='Y'
+group by attv_master.row_wid,
+ attv_slave.row_wid
+ )  groupbymasterslave
+group by  master_table
+),' ')
+into v_inner_joins_temp;
+raise NOTICE 'v_inner_joins_temp %',  v_inner_joins_temp;
+if v_inner_joins_temp is not null then
+v_inner_joins:= coalesce(v_inner_joins,'') || ' ' || coalesce (v_inner_joins_temp,'');
+end if;
+
+--begin
+select  ARRAY(
+select distinct attv_slave.row_wid
+from service_management.app_table_to_view attv_master,
+ service_management.app_table_to_view attv_slave,
+ service_management.app_table_to_view_condition attvc
+where  attvc.master_table_row_wid=attv_master.row_wid
+and   attvc.slave_table_row_wid=attv_slave.row_wid
+and   attv_master.view_row_wid = p_view_row_wid
+and   attv_slave.view_row_wid = p_view_row_wid
+and attvc.master_table_row_wid = any(v_source_tables_level_array)
+and attvc.join_type<> 'outer'
+and  upper(attv_master.active)='Y'
+and upper(attv_slave.active)='Y'
+and upper(attvc.active)='Y'
+)
+into v_source_tables_level_array;
+
+if v_source_tables_level_array is null
+then  --raise NOTICE 'in the if';
+exit LOOP1;
+--else raise NOTICE 'not in the if';
+end if;
+--exception
+-- when no_data_found then exit;
+--end;
+
+
+end loop;
+
+
+raise notice 'got v_source_tables';
+
+
+
+
+
+    select array(
+select row_wid from
+(select attv.row_wid, attvct.master_table_row_wid, attv.source_schema || '.' ||   attv.table_name  || ' ' || attv.table_name || '_' || attv.row_wid table_formated,
+attvct.join_type,
+rank() over( order by coalesce(attvct.join_type,'a') asc,coalesce(attvct.row_wid,-1)  asc) top
+from service_management.app_table_to_view attv
+left outer join service_management.app_table_to_view_condition attvct
+  on upper(attvct.active)='Y'
+  and attvct.master_table_row_wid =attv.row_wid
+left outer join service_management.app_table_to_view_condition attvct_child
+  on upper(attvct_child.active)='Y'
+  and  attvct_child.slave_table_row_wid = attv.row_wid
+where upper(attv.active)='Y'
+and attv.view_row_wid = p_view_row_wid
+and attvct_child.master_table_row_wid is null  -- not used in the slave portion of a join
+) the_list_of_tab
+where top=1)
+    into v_table_level_array;
+
+
+raise notice 'got v_table_level_array';
+
+
+
+-- format the outer join
+<<LOOP2>>
+for i in 1..10 loop
+select  array_to_string(ARRAY(
+select   array_to_string(array_agg(from_side || array_to_string(condition_side ,' and ')), ' ') the_outer_join
+from  (
+select max(attv_master.source_schema || '.' ||   attv_master.table_name  || ' ' || attv_master.table_name || '_' || attv_master.row_wid ) master_table,
+       max(' left outer join ' || attv_slave.source_schema || '.' ||   attv_slave.table_name  || ' ' || attv_slave.table_name || '_' || attv_slave.row_wid ||
+       ' on ') from_side ,
+       array_agg(replace(replace(array_to_string(attvc.condition ,' and '),'master',attv_master.table_name || '_' || attv_master.row_wid),'slave', attv_slave.table_name || '_' || attv_slave.row_wid) ) condition_side -- ,)
+from service_management.app_table_to_view attv_master,
+ service_management.app_table_to_view attv_slave,
+ service_management.app_table_to_view_condition attvc
+where  attvc.master_table_row_wid=attv_master.row_wid
+and   attvc.slave_table_row_wid=attv_slave.row_wid
+and   attv_master.view_row_wid = p_view_row_wid
+and   attv_slave.view_row_wid = p_view_row_wid
+and attvc.master_table_row_wid=any(v_table_level_array)
+and attvc.join_type= 'outer'
+and  upper(attv_master.active)='Y'
+and upper(attv_slave.active)='Y'
+and upper(attvc.active)='Y'
+group by attv_master.row_wid,
+ attv_slave.row_wid
+ )  groupbymasterslave
+group by  master_table
+),' ')
+into v_outer_joins_temp;
+raise notice 'added join %', v_outer_joins_temp;
+if v_outer_joins_temp is not null then
+v_outer_joins:= coalesce(v_outer_joins,'') || ' ' || coalesce (v_outer_joins_temp,'');
+end if;
+
+--begin
+select  ARRAY(
+select distinct attv_slave.row_wid
+from service_management.app_table_to_view attv_master,
+ service_management.app_table_to_view attv_slave,
+ service_management.app_table_to_view_condition attvc
+where  attvc.master_table_row_wid=attv_master.row_wid
+and   attvc.slave_table_row_wid=attv_slave.row_wid
+and   attv_master.view_row_wid = p_view_row_wid
+and   attv_slave.view_row_wid = p_view_row_wid
+and attvc.master_table_row_wid = any(v_table_level_array)
+and attvc.join_type= 'outer'
+and  upper(attv_master.active)='Y'
+and upper(attv_slave.active)='Y'
+and upper(attvc.active)='Y'
+)
+into v_table_level_array;
+
+if v_table_level_array is null
+then  --raise NOTICE 'in the if';
+exit LOOP2;
+--else raise NOTICE 'not in the if';
+end if;
+--exception
+-- when no_data_found then exit;
+--end;
+
+
+end loop;
+
+raise notice 'got v_outer_joins';
+
+       select ' where ' || array_to_string(ARRAY(    SELECT replace(unnest(condition),
+       'master',  master.table_name|| '_' || master.row_wid)
+    from service_management.app_table_to_view master,
+     service_management.app_table_to_view_condition attvc
+    where  master.view_row_wid = p_view_row_wid
+    and master.row_wid=master_table_row_wid
+    and slave_table_row_wid is null
+    and attvc.active='y'
+    and attvc.join_type<> 'outer'
+    and master.active='y') ,' and ')
+    into v_where_clause;
+
+
+
+    select count(1) into v_view_found
+    from information_schema.tables
+    where UPPER(table_schema) = UPPER(v_target_schema)
+    and UPPER(table_name) =UPPER(v_view_name)
+    and table_type ='VIEW';
+
+
+
+select max(case stage
+when 'pre_sql' then free_format
+end)  pre_sql,
+max(case stage
+when 'post_select' then free_format
+end)  post_select,
+max(case stage
+when 'pre_from' then free_format
+end)  pre_from,
+max(case stage
+when 'pre_where' then free_format
+end)  pre_where,
+max(case stage
+when 'post_sql' then free_format
+end)  post_sql
+into v_pre_sql ,
+     v_post_select,
+     v_pre_from,
+     v_pre_where,
+     v_post_sql
+    from service_management.app_table_to_view_free_format
+    where active='y'
+    and view_row_wid=p_view_row_wid
+    group by view_row_wid;
+
+raise notice 'v_source_tables %' , v_source_tables;
+raise notice 'v_outer_joins %' , v_outer_joins;
+raise notice 'v_outer_joins %' , v_outer_joins;
+
+    if (v_view_found <> 0) then
+execute('DROP VIEW IF EXISTS '|| v_target_schema || '.' || v_view_name );
+    end if;
+
+
+raise notice 'view_code %' , 'CREATE VIEW ' || v_target_schema || '.' || v_view_name ||
+' AS ' || coalesce(v_pre_sql, ' ')  || ' SELECT ' || coalesce(v_post_select, ' ')  || ' ' || coalesce(v_field_selection,' * ') || ' ' ||
+coalesce(v_pre_from, ' ')  || ' FROM ' || coalesce(v_source_tables, ' ')  || ' ' || coalesce(v_inner_joins,' ') ||' ' ||  coalesce(v_outer_joins,' ') || ' ' ||
+coalesce(v_pre_where, ' ') || ' ' || coalesce(v_where_clause, ' ') || ' '  || coalesce(v_post_sql, ' ')  ;
+raise notice 'before create v';
+execute('CREATE VIEW ' || v_target_schema || '.' || v_view_name ||
+' AS ' || coalesce(v_pre_sql, ' ')  || ' SELECT ' || coalesce(v_post_select, ' ')  || ' ' || coalesce(v_field_selection,' * ') || ' ' ||
+coalesce(v_pre_from, ' ')  || ' FROM ' || coalesce(v_source_tables, ' ')  || ' ' || coalesce(v_inner_joins,' ') ||' ' ||  coalesce(v_outer_joins,' ') || ' ' ||
+coalesce(v_pre_where, ' ') || ' ' || coalesce(v_where_clause, ' ') || ' '  || coalesce(v_post_sql, ' ')  );
+raise notice 'after create v';
+execute('ALTER TABLE '|| v_target_schema || '.' || v_view_name || ' OWNER TO ' || v_object_owner);
+raise notice 'after alter v';
+execute('GRANT ALL ON TABLE '|| v_target_schema || '.' || v_view_name || ' TO ' || v_object_owner);
+
+raise notice 'after grant v';
+
+    v_level:='Grant Creation';
+
+    for view_grant in
+ (  select * from  service_management.app_view_grants avg,
+   (  select max(target_schema) target_schema, max( view_name) view_name
+      FRom service_management.app_table_to_view
+       where view_row_wid = p_view_row_wid
+   and active ='y' ) attv
+ where avg.view_row_wid=p_view_row_wid
+ and avg.active='y')              loop
+
+       v_user_id :=view_grant.user_id;
+
+raise notice 'before grant v';
+--raise notice 'the grant %', 'GRANT ' || view_grant.grant_value || ' ON TABLE '|| view_grant.target_schema || '.' || view_grant.view_name || ' TO ' || view_grant.user_id;
+execute('GRANT ' || view_grant.grant_value || ' ON TABLE '|| view_grant.target_schema || '.' || view_grant.view_name || ' TO ' || view_grant.user_id);
+
+
+raise notice 'after grant v2';
+    end loop;
+
+   v_level:='Comment Creation';
+
+
+
+
+
+for comment_creation in (
+select  selected_field.*,
+ split_part(UNFORMATED, ' ', 1) table_field_name,
+ case when split_part(UNFORMATED, ' ', 3) = '' then  UNFORMATED else split_part(UNFORMATED, ' ', 3) end view_field_name,
+'comment on column '|| selected_field.target_schema || '.' || selected_field.view_name ||'.' statement_is,
+'select replace(col_description(''' || selected_field.source_schema || '.'||  selected_field.table_name|| '''::regclass,' || pa.attnum|| '),'''''''', '''''''''''') ' comment_is
+from pg_catalog.pg_attribute  pa,
+pg_class pc,
+pg_namespace pn,
+(SELECT attv.source_schema,  attv.table_name , attv.target_schema, attv.view_name,
+    unnest(attv.field_selection) UNFORMATED
+ from service_management.app_table_to_view attv
+ where view_row_wid = p_view_row_wid
+ and active='y') selected_field
+where pc.oid=pa.attrelid
+and pn.oid=pc.relnamespace
+and pc.relname=selected_field.table_name
+and pn.nspname =selected_field.source_schema
+and pa.attname= split_part(UNFORMATED, ' ', 1)
+and   selected_field.UNFORMATED <>'*'
+and pa.attnum >0 ) loop
+
+
+
+ v_target_schema:=  comment_creation.target_schema;
+ v_view_name:=      comment_creation.view_name;
+
+v_field_id:= comment_creation.view_field_name;
+     EXECUTE comment_creation.comment_is INTO v_comment;
+  if v_comment is not null then
+      execute (comment_creation.statement_is || comment_creation.view_field_name || ' is '''||  v_comment ||''';');
+  end if;
+
+    end loop;
+
+
+
+     for comment_full_table in (
+select 'select replace(col_description(''' || bbb.source_schema || '.' || bbb.table_name || '''::regclass,' || bbb.ordinal_position ||'),'''''''', '''''''''''') ' col_desc,
+       'comment on column '||bbb.target_schema || '.' || bbb.view_name ||'.' || bbb.column_name || ' is ''' statement_is,
+       bbb.column_name
+       from
+(select selected_field.source_schema,
+selected_field.table_name,
+selected_field.target_schema,
+selected_field.view_name,
+pa.attname column_name,
+pa.attnum ordinal_position
+     from (
+ SELECT attv.source_schema,  attv.table_name , attv.target_schema, attv.view_name,
+    unnest(attv.field_selection) UNFORMATED
+ from service_management.app_table_to_view attv
+ where view_row_wid =p_view_row_wid
+ and active='y') selected_field,
+ pg_catalog.pg_attribute pa,
+pg_class pc,
+pg_namespace pn
+where pc.oid=pa.attrelid
+and pn.oid=pc.relnamespace
+and pc.relname=selected_field.table_name
+and pn.nspname =selected_field.source_schema
+and selected_field.UNFORMATED ='*'
+ ) bbb)loop
+
+
+
+
+v_field_id:= comment_full_table.column_name;
+
+execute comment_full_table.col_desc INTO v_comment;
+     if v_comment is not null then
+
+     execute (comment_full_table.statement_is || v_comment ||''';');
+  end if;
+
+     end loop;
+
+
+-- table level column
+-- get the comment
+v_comment := replace(string_agg(obj_description(pc.oid , 'pg_class'), ' - '),'''', '''''')
+     from pg_class pc,
+pg_namespace pn,
+service_management.app_table_to_view  attv
+                     where attv.view_row_wid = p_view_row_wid
+                     and attv.active ='y'
+     and pc.relnamespace=pn.oid
+     and pn.nspname = source_schema
+     and pc.relname= table_name;
+
+    raise notice 'comment is %', v_comment;
+    raise notice 'table  is %', v_view_name;
+-- apply the comment ON
+if v_comment is not null then
+execute ('COMMENT ON view '|| v_target_schema || '.' || v_view_name || ' IS ''' ||  v_comment ||''';');
+end if;
+
+
+
+     v_level:='Audit trail';
+
+     update service_management.app_table_to_view
+     set w_last_refreshed_by  = p_audit_user,
+ w_last_refresh_date_dt= now()
+     where view_row_wid = p_view_row_wid
+     and active ='y' ;
+
+     else
+ v_level := 'dependent objects';
+
+ RAISE EXCEPTION 'Dependent object' ;
+      return 0;
+     end if;
+
+
+
+return 1;
+
+ exception
+    WHEN OTHERS THEN
+        if (v_level='View creation') then
+            v_success=service_management.tab_log_error(sqlstate||' ' ||sqlerrm, 'service_management.tab_to_view_target(0) '|| v_target_schema || '.' || v_view_name || ' creation');
+        ELSIF  (v_level='Grant Creation') then
+            v_success=service_management.tab_log_error(sqlstate||' ' ||sqlerrm, 'service_management.tab_to_view_target(0) ' || v_target_schema || '.' || v_view_name || ' grant to ' || v_user_id);
+        ELSIF  (v_level='Comment Creation') then
+            v_success=service_management.tab_log_error(sqlstate||' ' ||sqlerrm, 'service_management.tab_to_view_target(0) ' || v_target_schema || '.' || v_view_name || ' comment on ' || v_field_id);
+        ELSIF  (v_level='dependent objects') then
+            v_success=service_management.tab_log_error('dependent object(s) exist(s)',  'service_management.tab_to_view_target(0) '|| v_target_schema || '.' || v_view_name || ' creation');
+        else
+            v_success=service_management.tab_log_error(sqlstate||' ' ||sqlerrm, 'service_management.tab_to_view_target(0)');
+        end if;
+
+
+    --    RETURN 0;
+
+end;
+
+$$
+EXECUTE ON ANY;
+
+-- Permissions
+
+ALTER FUNCTION service_management.tab_to_view_target(int4, name) OWNER TO sys_object_owner;
+GRANT ALL ON FUNCTION service_management.tab_to_view_target(int4, name) TO sys_object_owner;
+GRANT ALL ON FUNCTION service_management.tab_to_view_target(int4, name) TO sys_grp_support2;
+GRANT ALL ON FUNCTION service_management.tab_to_view_target(int4, name) TO gpadmin;
